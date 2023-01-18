@@ -24,8 +24,14 @@ const SignUp = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        const { email, password } = loginData
+        const { email, password, pseudo } = loginData
         firebase.signupUser(email, password)
+            .then(authUser => {
+                return firebase.user(authUser.user.uid).set({
+                    pseudo,
+                    email
+                })
+            })
             .then(() => {
                 setLoginData({ ...loginData })
                 navigate("/welcome")

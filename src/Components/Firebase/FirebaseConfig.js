@@ -15,8 +15,7 @@ const firebaseConfig = {
 class Firebase {
     constructor() {
         app.initializeApp(firebaseConfig);
-
-        this.auth = app.auth()
+        this.auth = app.auth();
         this.db = app.firestore()
     }
 
@@ -37,5 +36,6 @@ class Firebase {
     // firestore
     user = uid => this.db.doc(`users/${uid}`);
 }
+
 
 export default Firebase
