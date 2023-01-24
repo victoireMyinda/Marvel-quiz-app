@@ -2,8 +2,12 @@ import React, { Component } from 'react';
 import Levels from '../Levels';
 import ProgressBar from '../ProgressBar';
 import { QuizMarvel } from '../quizMarvel';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.min.css'
 
+toast.configure();
 class QUiz extends Component {
+
 
     state = {
         levelsName: ["debutant", "moyen", "expert"],
@@ -27,6 +31,23 @@ class QUiz extends Component {
 
             const newArray = fetchedArrayQuiz.map(({ answer, ...keepRest }) => keepRest);
             this.setState({ storedQuestions: newArray })
+        }
+    }
+
+    showToastMsg = pseudo => {
+        if (!this.state.showWelcomeMsg) {
+
+            this.setState({ showWelcomeMsg: true })
+
+            toast.warn(`Bienvenue ${pseudo}, et bonne chance!`, {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: false,
+                bodyClassName: "toastify-color-welcome"
+            });
         }
     }
 
@@ -73,11 +94,33 @@ class QUiz extends Component {
             this.setState(prevState => ({
                 score: prevState.score + 1
             }))
+
+            this.setState(prevState => ({ score: prevState.score + 1 }))
+
+            toast.success('Bravo +1', {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                bodyClassName: "toastify-color"
+            });
+        } else {
+            toast.error('Raté 0', {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                bodyClassName: "toastify-color"
+            });
         }
     }
 
     render() {
-        //const { pseudo } = this.props.userdata
+        // const { pseudo } = this.props.userdata
         const displayOptions = this.state.options.map((option, index) => {
             return (
                 <p key={index}
@@ -89,7 +132,7 @@ class QUiz extends Component {
         })
         return (
             <div>
-                {/*   <h2>Joueur : {pseudo}</h2> */}
+                {/* <h2>Joueur : {pseudo}</h2> */}
                 <Levels />
                 <ProgressBar />
                 <h2>{this.state.question} </h2>
