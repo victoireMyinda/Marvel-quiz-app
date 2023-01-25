@@ -142,13 +142,13 @@ class QUiz extends Component {
             <>
                 {/* <h2>Joueur : {pseudo}</h2> */}
                 <Levels />
-                <ProgressBar />
+                <ProgressBar idQuestion={this.state.idQuestion} maxQuestions={this.state.maxQuestions} />
                 <h2>{this.state.question} </h2>
                 {displayOptions}
                 <button className="btnSubmit"
                     disabled={this.state.btnDisabled}
                     onClick={this.nextQuestion}>
-                    Suivant
+                    {this.state.idQuestion < this.state.maxQuestions - 1 ? "suivant" : "terminer"}
                 </button>
             </>
         )
