@@ -21,7 +21,9 @@ class QUiz extends Component {
         btnDisabled: true,
         userAnswer: null,
         score: 0,
-        quizEnd: false
+        quizEnd: false,
+        percent: null
+
     }
 
 
@@ -60,7 +62,7 @@ class QUiz extends Component {
     nextQuestion = () => {
         if (this.state.idQuestion === this.state.maxQuestions - 1) {
 
-            this.setState({ quizEnd: true })
+            this.gameOver()
 
         } else {
 
@@ -119,11 +121,29 @@ class QUiz extends Component {
         })
     }
 
+    getPercentage = (maxQuest, ourScore) => (ourScore / maxQuest) * 100
+
     gameOver = () => {
+        const gradePercent = this.getPercentage(this.state.maxQuestions, this.state.score)
+
+        if (gradePercent >= 50) {
+            this.setState({
+                quizLevel: this.state.quizLevel + 1,
+                percent: gradePercent,
+                quizEnd: true
+            })
+        } else {
+            this.setState({
+                percent: gradePercent,
+                quizEnd: true
+            })
+        }
+
         this.setState({
             quizEnd: true
         })
     }
+
 
     render() {
         // const { pseudo } = this.props.userdata
@@ -136,8 +156,15 @@ class QUiz extends Component {
                 </p>
             )
         })
-        return !this.state.quizEnd ? (
-            <QuizOver ref={this.storedDataRef} />
+        return this.state.quizEnd ? (
+            <QuizOver
+                ref={this.storedDataRef}
+                levelNames={this.state.levelsName}
+                score={this.state.score}
+                maxQuestions={this.state.maxQuestions}
+                quizLevel={this.state.quizLevel}
+                percent={this.state.percent}
+            />
         ) : (
             <>
                 {/* <h2>Joueur : {pseudo}</h2> */}

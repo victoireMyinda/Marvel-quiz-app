@@ -7,7 +7,7 @@ import Error from "../Error";
 import Footer from "../Footer";
 import ForgetPassword from "../PasswordForgot";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import "../../App.css"
+import "../../App.css";
 function App() {
   return (
     <div className="App">
