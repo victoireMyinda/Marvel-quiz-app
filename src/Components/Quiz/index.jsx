@@ -136,8 +136,8 @@ class QUiz extends Component {
                 </p>
             )
         })
-        return this.state.quizEnd ? (
-            <QuizOver />
+        return !this.state.quizEnd ? (
+            <QuizOver ref={this.storedDataRef} />
         ) : (
             <>
                 {/* <h2>Joueur : {pseudo}</h2> */}
