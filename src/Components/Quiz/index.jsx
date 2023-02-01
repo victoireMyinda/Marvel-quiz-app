@@ -1,47 +1,53 @@
-import React, { Component } from 'react';
-import Levels from '../Levels';
-import ProgressBar from '../ProgressBar';
-import { QuizMarvel } from '../quizMarvel';
-import QuizOver from '../quizOver';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.min.css'
+import React, { Component, Fragment } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.min.css";
+import { QuizMarvel } from "../quizMarvel/";
+import Levels from "../Levels";
+import ProgressBar from "../ProgressBar";
+import QuizOver from "../QuizOver";
 
 toast.configure();
-class QUiz extends Component {
 
+const initialState = {
+    quizLevel: 0,
+    maxQuestions: 10,
+    storedQuestions: [],
+    question: null,
+    options: [],
+    idQuestion: 0,
+    btnDisabled: true,
+    userAnswer: null,
+    score: 0,
+    showWelcomeMsg: false,
+    quizEnd: false,
+    percent: null,
+};
 
-    state = {
-        levelsName: ["debutant", "moyen", "expert"],
-        quizLevel: 0,
-        maxQuestions: 10,
-        storedQuestions: [],
-        question: null,
-        options: [],
-        idQuestion: 0,
-        btnDisabled: true,
-        userAnswer: null,
-        score: 0,
-        quizEnd: false,
-        percent: null
+const levelNames = ["debutant", "confirme", "expert"];
 
+class Quiz extends Component {
+    constructor(props) {
+        super(props);
+        this.state = initialState;
+        this.storedDataRef = React.createRef();
     }
 
-
-    storedDataRef = React.createRef()
-    loadQuestions = quizz => {
+    loadQuestions = (quizz) => {
         const fetchedArrayQuiz = QuizMarvel[0].quizz[quizz];
         if (fetchedArrayQuiz.length >= this.state.maxQuestions) {
-            this.storedDataRef.current = fetchedArrayQuiz
+            this.storedDataRef.current = fetchedArrayQuiz;
 
-            const newArray = fetchedArrayQuiz.map(({ answer, ...keepRest }) => keepRest);
-            this.setState({ storedQuestions: newArray })
+            const newArray = fetchedArrayQuiz.map(
+                ({ answer, ...keepRest }) => keepRest
+            );
+
+            this.setState({ storedQuestions: newArray });
         }
-    }
+    };
 
-    showToastMsg = pseudo => {
+    showToastMsg = (pseudo) => {
         if (!this.state.showWelcomeMsg) {
-
-            this.setState({ showWelcomeMsg: true })
+            this.setState({ showWelcomeMsg: true });
 
             toast.warn(`Bienvenue ${pseudo}, et bonne chance!`, {
                 position: "top-right",
@@ -50,136 +56,159 @@ class QUiz extends Component {
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: false,
-                bodyClassName: "toastify-color-welcome"
+                bodyClassName: "toastify-color-welcome",
             });
         }
-    }
+    };
 
     componentDidMount() {
-        this.loadQuestions(this.state.levelsName[this.state.quizLevel])
+        this.loadQuestions(levelNames[this.state.quizLevel]);
     }
 
     nextQuestion = () => {
         if (this.state.idQuestion === this.state.maxQuestions - 1) {
-
-            this.gameOver()
-
+            this.setState({ quizEnd: true });
         } else {
-
-            this.setState(prevState => ({ idQuestion: prevState.idQuestion + 1 }))
+            this.setState((prevState) => ({ idQuestion: prevState.idQuestion + 1 }));
         }
 
         const goodAnswer = this.storedDataRef.current[this.state.idQuestion].answer;
         if (this.state.userAnswer === goodAnswer) {
+            this.setState((prevState) => ({ score: prevState.score + 1 }));
 
-            this.setState(prevState => ({ score: prevState.score + 1 }))
-
-            toast.success('Bravo +1', {
+            toast.success("Bravo +1", {
                 position: "top-right",
                 autoClose: 2000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                bodyClassName: "toastify-color"
+                bodyClassName: "toastify-color",
             });
         } else {
-            toast.error('Raté 0', {
+            toast.error("Raté 0", {
                 position: "top-right",
                 autoClose: 2000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
-                bodyClassName: "toastify-color"
+                bodyClassName: "toastify-color",
             });
         }
-    }
+    };
 
-    componentDidUpdate(prevPropos, prevState) {
-        if (this.state.storedQuestions !== prevState.storedQuestions) {
+    componentDidUpdate(prevProps, prevState) {
+        const { maxQuestions, storedQuestions, idQuestion, quizEnd, score } =
+            this.state;
+
+        if (
+            storedQuestions !== prevState.storedQuestions &&
+            storedQuestions.length
+        ) {
             this.setState({
-                question: this.state.storedQuestions[this.state.idQuestion].question,
-                options: this.state.storedQuestions[this.state.idQuestion].options
-            })
+                question: storedQuestions[idQuestion].question,
+                options: storedQuestions[idQuestion].options,
+            });
         }
 
-        if (this.state.idQuestion !== prevState.idQuestion) {
+        if (idQuestion !== prevState.idQuestion && storedQuestions.length) {
             this.setState({
-                question: this.state.storedQuestions[this.state.idQuestion].question,
-                options: this.state.storedQuestions[this.state.idQuestion].options,
+                question: storedQuestions[idQuestion].question,
+                options: storedQuestions[idQuestion].options,
                 userAnswer: null,
-                btnDisabled: true
-            })
+                btnDisabled: true,
+            });
+        }
+
+        if (quizEnd !== prevState.quizEnd) {
+            const gradepercent = this.getPercentage(maxQuestions, score);
+            this.gameOver(gradepercent);
         }
     }
 
-    submitAnswer = selectedAnswer => {
+    submitAnswer = (selectedAnswer) => {
         this.setState({
+            userAnswer: selectedAnswer,
             btnDisabled: false,
-            userAnswer: selectedAnswer
-        })
-    }
+        });
+    };
 
-    getPercentage = (maxQuest, ourScore) => (ourScore / maxQuest) * 100
+    getPercentage = (maxQuest, ourScore) => (ourScore / maxQuest) * 100;
 
-    gameOver = () => {
-        const gradePercent = this.getPercentage(this.state.maxQuestions, this.state.score)
-
-        if (gradePercent >= 50) {
+    gameOver = (percent) => {
+        if (percent >= 50) {
             this.setState({
                 quizLevel: this.state.quizLevel + 1,
-                percent: gradePercent,
-                quizEnd: true
-            })
+                percent,
+            });
         } else {
-            this.setState({
-                percent: gradePercent,
-                quizEnd: true
-            })
+            this.setState({ percent });
         }
+    };
 
-        this.setState({
-            quizEnd: true
-        })
-    }
+    loadLevelQuestions = (param) => {
+        this.setState({ ...initialState, quizLevel: param });
 
+        this.loadQuestions(levelNames[param]);
+    };
 
     render() {
-        // const { pseudo } = this.props.userdata
-        const displayOptions = this.state.options.map((option, index) => {
+        const {
+            quizLevel,
+            maxQuestions,
+            question,
+            options,
+            idQuestion,
+            btnDisabled,
+            userAnswer,
+            score,
+            quizEnd,
+            percent,
+        } = this.state;
+
+        const displayOptions = options.map((option, index) => {
             return (
-                <p key={index}
-                    className={`answerOptions ${this.state.userAnswer === option ? "selected" : null}`}
-                    onClick={() => this.submitAnswer(option)}>
+                <p
+                    key={index}
+                    className={`answerOptions ${userAnswer === option ? "selected" : null
+                        }`}
+                    onClick={() => this.submitAnswer(option)}
+                >
                     {option}
                 </p>
-            )
-        })
-        return this.state.quizEnd ? (
+            );
+        });
+
+        return quizEnd ? (
             <QuizOver
                 ref={this.storedDataRef}
-                levelNames={this.state.levelsName}
-                score={this.state.score}
-                maxQuestions={this.state.maxQuestions}
-                quizLevel={this.state.quizLevel}
-                percent={this.state.percent}
+                levelNames={levelNames}
+                score={score}
+                maxQuestions={maxQuestions}
+                quizLevel={quizLevel}
+                percent={percent}
+                loadLevelQuestions={this.loadLevelQuestions}
             />
         ) : (
-            <>
-                {/* <h2>Joueur : {pseudo}</h2> */}
-                <Levels />
-                <ProgressBar idQuestion={this.state.idQuestion} maxQuestions={this.state.maxQuestions} />
-                <h2>{this.state.question} </h2>
+            <Fragment>
+                <Levels levelNames={levelNames} quizLevel={quizLevel} />
+
+                <ProgressBar idQuestion={idQuestion} maxQuestions={maxQuestions} />
+                <h2>{question}</h2>
+
                 {displayOptions}
-                <button className="btnSubmit"
-                    disabled={this.state.btnDisabled}
-                    onClick={this.nextQuestion}>
-                    {this.state.idQuestion < this.state.maxQuestions - 1 ? "suivant" : "terminer"}
+
+                <button
+                    disabled={btnDisabled}
+                    className="btnSubmit"
+                    onClick={this.nextQuestion}
+                >
+                    {idQuestion < maxQuestions - 1 ? "Suivant" : "Terminer"}
                 </button>
-            </>
-        )
+            </Fragment>
+        );
     }
 }
 
-export default QUiz;
+export default Quiz;
